@@ -16,6 +16,7 @@ class AppSettings(BaseSettings):
     ds_model: str = Field(..., alias='DS_MODEL')
     dsr1_model: str = Field(..., alias='DSR1_MODEL')
     glm_model: str = Field(..., alias='GLM_MODEL')
+    qwen3_32b_model: str = Field(..., alias='Qwen3_32B_MODEL')
 
     embedding_model: str = Field(..., alias='EMBEDDING_MODEL')
 
@@ -26,6 +27,8 @@ class AppSettings(BaseSettings):
     milvus_collection_name: str = Field(..., alias='MILVUS_COLLECTION_NAME')
     milvus_metric_type: str = Field(..., alias='MILVUS_METRIC_TYPE')
     milvus_index_type: str = Field(..., alias='MILVUS_INDEX_TYPE')
+
+
 
     # langsmith 
     LANGSMITH_TRACING: bool = Field(..., alias='LANGSMITH_TRACING')
