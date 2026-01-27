@@ -11,6 +11,7 @@ class AppSettings(BaseSettings):
     # SiliconFlow Configuration
     siliconflow_base_url: str = Field(..., alias='SILICONFLOW_BASE_URL')
     siliconflow_api_key: str = Field(..., alias='SILICONFLOW_API_KEY')
+    deepseek_api_key: str = Field(..., alias='DEEPSEEK_API_KEY')
 
     # Model Names
     ds_model: str = Field(..., alias='DS_MODEL')

@@ -1,9 +1,11 @@
 from app.config import settings
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import SystemMessagePromptTemplate, HumanMessagePromptTemplate,AIMessagePromptTemplate, ChatPromptTemplate
-from langchain_core.runnables import RunnablePassthrough, RunnableParallel, RunnableLambda
+from langchain_core.runnables import RunnableSequence, RunnablePassthrough, RunnableLambda, RunnableBranch
 from langchain_core.output_parsers import StrOutputParser
 from langchain.messages import HumanMessage, AIMessage, SystemMessage
+from pydantic import BaseModel
+from typing import Literal
 
 
 model = ChatOpenAI(
@@ -91,10 +93,105 @@ def test_lcel():
     # 输出：
     # 我热爱编程。
 
-def test_runnable():
-    pass;
+
+
+def test_runnable_sequence():
+
+    prompt = ChatPromptTemplate(
+        [
+            ("system", "你是一个{type}，请根据用户的提问进行回答"),
+            ("system", "{instruction}"),
+            ("human", "{question}"),
+        ]
+    )
+
+    def classifier(input: dict) -> dict:
+        question: str = input["question"]
+        instruction: str = input["instruction"]
+        type_value = "科普专家" if "科普" in question else "智能助手"
+        return {
+            "type": type_value,
+            "question": question,
+            "instruction": instruction,
+        }
+    # RunnableLambda将classifier包装成一个Runnable，使它可以在LCEL中使用
+    # chain = RunnableLambda(classifier) | prompt | model | StrOutputParser()
+    # 等价于
+    chain = RunnableSequence(RunnableLambda(classifier), prompt, model, StrOutputParser())  
+    ans = chain.invoke(
+        {
+            "question": "科普，鲸鱼是哺乳动物么？只需要回答是或不是",
+            "instruction": "用中文回答",
+        }
+    )
+    print(ans)
+    # 是
+
+
+def test_runnable_branch():
+    class ClassifyResult(BaseModel):
+        type: Literal["科普", "编程", "其他"]
+
+    structured_model = model.with_structured_output(ClassifyResult)
+
+    science_prompt = ChatPromptTemplate(
+        [
+            ("system", "你是科普专家，通俗准确、简洁回答。"),
+            ("human", "{question}"),
+        ]
+    )
+    science_expert = RunnableSequence(science_prompt, model, StrOutputParser())
+
+    code_prompt = ChatPromptTemplate(
+        [
+            ("system", "你是编程专家，提供代码或技术解答。"),
+            ("human", "{question}"),
+        ]
+    )
+    code_expert = RunnableSequence(code_prompt, model, StrOutputParser())
+
+    general_prompt = ChatPromptTemplate(
+        [
+            ("system", "你是智能助手，简洁中文回答。"),
+            ("human", "{question}"),
+        ]
+    )
+    general_expert = RunnableSequence(general_prompt, model, StrOutputParser())
+
+
+    classifier = RunnablePassthrough.assign(
+        # classify_result 会 赋值给 input["classify_result"]
+        classify_result=lambda input: structured_model.invoke(
+            f"请判断以下问题的类型，并只返回JSON：{{\"type\": \"科普\"|\"编程\"|\"其他\"}}。问题：{input['question']}"
+        )
+    )
+    debug_runnable = RunnableLambda(
+        lambda input: (print("中间结果:", input), input)[1]
+    )
+
+    # RunnableBranch 将从三个分支中选取一个，根据lambda函数的返回值判断选择哪一个。
+    branch = classifier | debug_runnable | RunnableBranch(
+        (
+            lambda input: getattr(input.get("classify_result"), "type", None) == "科普",
+            science_expert,
+        ),
+        (
+            lambda input: getattr(input.get("classify_result"), "type", None) == "编程",
+            code_expert,
+        ),
+        general_expert,
+    )
+
+    result = branch.invoke({"question": "简单回答下，鲸鱼是哺乳动物吗？"})
+    print(result)
+    # 中间结果: {'question': '简单回答下，鲸鱼是哺乳动物吗？', 'classify_result': ClassifyResult(type='科普')}
+    # 是的，**鲸鱼是哺乳动物**，而不是鱼类。
+    
+
+
 if __name__ == "__main__":
     # test_prompt_template()
     # test_output_parser()
     # test_lcel()
-    test_runnable()
+    # test_runnable_sequence()
+    test_runnable_branch()
