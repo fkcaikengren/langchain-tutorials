@@ -10,6 +10,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@langchain/deepseek": "^1.0.7",
     "@langchain/langgraph": "^1.1.2",
     "@langchain/openai": "^1.2.3",
     "langchain": "^1.2.13",
