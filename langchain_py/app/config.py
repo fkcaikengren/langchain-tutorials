@@ -1,7 +1,8 @@
-import os
-
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
+
+load_dotenv()
 
 class AppSettings(BaseSettings):
 
@@ -47,28 +48,4 @@ class AppSettings(BaseSettings):
         extra="ignore"                 # 忽略未定义的变量
     )
 
-# 实例化配置
 settings = AppSettings()
-
-
-
-# 加载 langsmith 到环境变量
-def _set_env_if_missing(key: str, value: str | None) -> None:
-    if value is None:
-        return
-    if os.environ.get(key) is None:
-        os.environ[key] = value
-
-
-_set_env_if_missing(
-    "LANGSMITH_TRACING",
-    "true" if settings.LANGSMITH_TRACING else "false",
-)
-_set_env_if_missing("LANGSMITH_ENDPOINT", settings.LANGSMITH_ENDPOINT)
-_set_env_if_missing("LANGSMITH_API_KEY", settings.LANGSMITH_API_KEY)
-_set_env_if_missing("LANGSMITH_PROJECT", settings.LANGSMITH_PROJECT)
-
-_set_env_if_missing("LANGCHAIN_TRACING_V2", os.environ.get("LANGSMITH_TRACING"))
-_set_env_if_missing("LANGCHAIN_ENDPOINT", os.environ.get("LANGSMITH_ENDPOINT"))
-_set_env_if_missing("LANGCHAIN_API_KEY", os.environ.get("LANGSMITH_API_KEY"))
-_set_env_if_missing("LANGCHAIN_PROJECT", os.environ.get("LANGSMITH_PROJECT"))

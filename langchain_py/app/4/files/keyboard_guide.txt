@@ -1,0 +1,13 @@
+Esc组合键功能：
+Shift+Esc 对应 ～
+Fn+Esc 对应 `
+
+Fn组合键功能：
+Fn+数字行(1至=) 对应 F行(F1至F12)
+Fn+F行(F1至F12) 对应 数字行(1至=)
+Fn+J 对应 Print Screen
+Fn+K 对应 Scroll Lock
+Fn+L 对应 Pause
+Fn+< 对应 Home
+Fn+> 对应 End
+Fn+Ctrl(右) 对应 Application Key
