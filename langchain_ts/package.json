@@ -10,8 +10,10 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@beshkenadze/langgraph-checkpoint-libsql": "^1.0.0",
     "@langchain/deepseek": "^1.0.7",
     "@langchain/langgraph": "^1.1.2",
+    "@langchain/langgraph-checkpoint-sqlite": "^1.0.1",
     "@langchain/openai": "^1.2.3",
     "langchain": "^1.2.13",
     "openai": "^6.16.0",
